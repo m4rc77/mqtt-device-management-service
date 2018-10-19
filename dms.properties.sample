@@ -1,0 +1,19 @@
+# General Configuration ...
+mqtt.broker=tcp://your-broker-url:1883
+mqtt.qos=0
+topic.start.with=my/special/topic
+
+# Browser start / kill command ...
+browser.start=chromium-browser --disable-session-crashed-bubble --disable-infobars --disable-translate --kiosk
+browser.kill=killall -9 chromium-browser
+
+# Topics and commands
+# [topic].cmd=some command here OR http:// OR https:// URL
+# [topic].killCmd=some-comannd-here OR browser.kill to kill the browser
+#  OR
+# [topic].exec=
+my/special/topic/42.cmd=http://www.google.ch
+my/special/topic/42.killCmd=browser.kill
+my/special/topic/23.cmd=gedit
+my/special/topic/23.killCmd=killall -9 gedit
+my/special/topic/999.exec=val=amixer -D pulse sset Master 100%
