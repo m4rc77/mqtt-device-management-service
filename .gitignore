@@ -26,3 +26,5 @@ nbproject/
 build/
 dist/
 target/
+
+deploy.sh
