@@ -19,14 +19,17 @@ public class MqttDeviceConnector  implements MqttCallback {
 
     private static final Logger log = LoggerFactory.getLogger(MqttDeviceConnector.class.getName());
 
+    private static final String SUBSCRIBE_TO_TOPIC_PREFIX = "subscribe.to.";
+
     private static final String CONFIG_BROKER = "mqtt.broker";
     private static final String CONFIG_QOS = "mqtt.qos";
-    private static final String CONFIG_TOPIC_START_WITH = "topic.start.with";
+    private static final String CONFIG_TOPIC_STATUS = "topic.status";
 
-    private static final int TWENTY_SECONDS = 20;
+    private static final int TEN_SECONDS = 10;
 
     private String mqttBroker;
     private int mqttQos;
+    private String statusTopic;
 
     private Set<String> topics;
 
@@ -39,13 +42,12 @@ public class MqttDeviceConnector  implements MqttCallback {
 
         mqttBroker = config.getProperty(CONFIG_BROKER).trim();
         mqttQos = Integer.parseInt(config.getProperty(CONFIG_QOS, "0").trim());
-
-        String topicStartsWith = config.getProperty(CONFIG_TOPIC_START_WITH);
+        statusTopic = config.getProperty(CONFIG_TOPIC_STATUS);
 
         topics = new TreeSet<>();
         for (String key: config.stringPropertyNames()) {
-            if (key.startsWith(topicStartsWith)) {
-                String topic = key;
+            if (key.startsWith(SUBSCRIBE_TO_TOPIC_PREFIX)) {
+                String topic = key.replace(SUBSCRIBE_TO_TOPIC_PREFIX, "");
                 topic = topic.replace(DeviceManager.EXEC_CMD, "");
                 topic = topic.replace(DeviceManager.KILL_CMD, "");
                 topic = topic.replace(DeviceManager.START_CMD, "");
@@ -55,6 +57,8 @@ public class MqttDeviceConnector  implements MqttCallback {
     }
 
     void setupMqtt() {
+        log.info("setupMqtt() ... start");
+
         boolean connected = false;
 
         long tries = 1;
@@ -67,11 +71,10 @@ public class MqttDeviceConnector  implements MqttCallback {
                 connOpts.setCleanSession(true);
                 // auto reconnect does not work ... see https://github.com/eclipse/paho.mqtt.android/issues/116
                 connOpts.setAutomaticReconnect(false);
-                connOpts.setKeepAliveInterval(TWENTY_SECONDS);
-                connOpts.setConnectionTimeout(TWENTY_SECONDS);
-
-                // TODO configure a last will ...
-                //connOpts.setWill(topicPrefix + TOPIC, "Java just died".getBytes(), QOS, false);
+                connOpts.setKeepAliveInterval(TEN_SECONDS);
+                connOpts.setConnectionTimeout(TEN_SECONDS);
+                log.info("Set last will to 0 (retained, QoS=" + mqttQos + ") on topic " + statusTopic);
+                connOpts.setWill(statusTopic, "0".getBytes(), mqttQos, true);
 
                 log.info("Connecting to broker: " + mqttBroker);
                 client.setCallback(this);
@@ -84,8 +87,14 @@ public class MqttDeviceConnector  implements MqttCallback {
                     log.info("Subscribed to " + topic);
                     client.subscribe(topic, mqttQos);
                 }
+                log.info("Subscribe to topics ... done");
 
-                log.info("done");
+
+                // Update status ...
+                log.info("Publish 0 (retained, QoS=" + mqttQos + ") on topic " + statusTopic);
+                client.publish(statusTopic, "1".getBytes(), mqttQos, true);
+
+                log.info("setupMqtt() ... done");
                 connected = true;
             } catch (MqttException me) {
                 log.info("\rError on connecting to server " + me);
@@ -102,6 +111,11 @@ public class MqttDeviceConnector  implements MqttCallback {
         log.info("Disconnect from " + mqttBroker);
 
         if (client != null) {
+            try {
+                client.publish(statusTopic, "0".getBytes(), mqttQos, true);
+            } catch (MqttException e) {
+                log.warn("Exception while sending bye bye mqtt-message: " + e);
+            }
             client.setCallback(null);
             try {
                 client.disconnect();
@@ -124,9 +138,9 @@ public class MqttDeviceConnector  implements MqttCallback {
     @Override
     public void messageArrived(String topic, MqttMessage message) {
         // Called when a message arrives from the server that matches any subscription made by the client
-        log.info("Topic: " + topic + "; Message:" + new String(message.getPayload()) + ": QoS:" + message.getQos());
+        log.info("Message on topic: " + topic + "; Message:" + new String(message.getPayload()) + ": QoS:" + message.getQos());
 
-        if (dm.executeCommand(topic)) {
+        if (dm.executeCommand(topic, SUBSCRIBE_TO_TOPIC_PREFIX + topic)) {
             log.debug("Executed command for " + topic);
         } else {
             log.warn("Failed to executed command for " + topic);

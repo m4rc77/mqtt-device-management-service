@@ -28,12 +28,12 @@ class DeviceManager {
         config = prop;
     }
 
-    boolean executeCommand(String topic) {
+    boolean executeCommand(String topic, String propertyKey) {
         try {
 
-            String startCommand = config.getProperty(topic + START_CMD, "");
-            String killCommand = config.getProperty(topic + KILL_CMD, "");
-            String execCommand = config.getProperty(topic + EXEC_CMD, "");
+            String startCommand = config.getProperty(propertyKey + START_CMD, "");
+            String killCommand = config.getProperty(propertyKey + KILL_CMD, "");
+            String execCommand = config.getProperty(propertyKey + EXEC_CMD, "");
 
             if (execCommand.isEmpty() && startCommand.equals(currentProcessStartCommand) && getState() == State.RUNNING) {
                 // requested process is already running ... just do nothing
@@ -46,7 +46,7 @@ class DeviceManager {
             }
 
             if (!startCommand.isEmpty()) {
-                log.debug("Going to execute " + startCommand);
+                log.debug("Going to execute " + startCommand + " for topic " + topic);
 
                 if (startCommand.startsWith("http")) {
                     String startBrowserCommand = config.getProperty("browser.start", "") + " " + startCommand;
@@ -61,11 +61,11 @@ class DeviceManager {
             } else if (!execCommand.isEmpty()) {
                 execProcess(execCommand);
             } else {
-                log.warn("Unable to find config property " + topic + ".cmd or " + topic + ".exec");
+                log.warn("Unable to find config property " + propertyKey + ".cmd or " + propertyKey + ".exec");
             }
             return true;
         } catch (Exception e) {
-            log.error("executeCommand() for " +topic + " failed! Error " + e, e);
+            log.error("executeCommand() for topic " + topic + " failed! Error " + e, e);
             return false;
         }
     }
