@@ -37,8 +37,10 @@ public class MqttDeviceManagementService {
 
                     log.info("MqttDeviceManagementService Shutdown ... done");
                     log.info("BYE BYE from MqttDeviceManagementService");
+                    Runtime.getRuntime().halt(0);
                 } catch (Exception e) {
                     log.error("Exception while shutting down MqttDeviceManagementService" + e);
+                    Runtime.getRuntime().halt(-1);
                 }
             }
         });
