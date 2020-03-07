@@ -4,8 +4,8 @@ mqtt.qos=1
 topic.status=my/status/topic
 
 # Browser start / kill command ...
-browser.start=chromium-browser --disable-session-crashed-bubble --disable-infobars --disable-translate --kiosk
-browser.kill=killall -9 chromium-browser
+browser.start=chromium-browser --disable-session-crashed-bubble --disable-infobars --disable-translate --autoplay-policy=no-user-gesture-required --kiosk
+browser.kill=pkill -9 chromium
 
 # Topics and commands
 # subscribe.to.[topic].cmd=some command here OR http:// OR https:// URL
@@ -16,4 +16,6 @@ subscribe.to.my/special/topic/42.cmd=http://www.google.ch
 subscribe.to.my/special/topic/42.killCmd=browser.kill
 subscribe.to.my/special/topic/23.cmd=gedit
 subscribe.to.my/special/topic/23.killCmd=killall -9 gedit
+subscribe.to.my/special/topic/997.exec=amixer -D pulse sset Master 5%-
+subscribe.to.my/special/topic/998.exec=amixer -D pulse sset Master 5%+
 subscribe.to.my/special/topic/999.exec=val=amixer -D pulse sset Master 100%
