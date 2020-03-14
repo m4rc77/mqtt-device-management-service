@@ -11,6 +11,7 @@
 *.zip
 *.tar.gz
 *.rar
+*.out
 
 dms.properties
 dms.properties.mac
