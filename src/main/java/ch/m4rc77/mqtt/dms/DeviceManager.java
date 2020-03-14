@@ -48,8 +48,15 @@ class DeviceManager {
             if (!startCommand.isEmpty()) {
                 log.debug("Going to execute " + startCommand + " for topic " + topic);
 
-                if (startCommand.startsWith("http")) {
-                    String startBrowserCommand = config.getProperty("browser.start", "") + " " + startCommand;
+                if (startCommand.startsWith("http") || startCommand.startsWith("https")) {
+                    // --> webpage ... start browser
+                    String url = startCommand;
+
+                    // add cache buster ...
+                    url += url.contains("?") ? "&" : "?";
+                    url += "cache_buster=" + System.currentTimeMillis();
+
+                    String startBrowserCommand = config.getProperty("browser.start", "") + " " + url;
                     startProcess(startBrowserCommand);
                     killCommand = config.getProperty("browser.kill");
                 } else {
