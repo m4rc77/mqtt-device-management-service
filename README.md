@@ -2,7 +2,7 @@
 
 ## Description
 Simple Service that connects to a MQTT-Broker and subscribes 
-to a list of configured topics. If messages do arrive on the
+to a list of configured topics. If messages will arrive at the
 topics the mqtt-device-management-service will start the configured
 commands e.g. the browser.
 
@@ -24,12 +24,6 @@ current working directory.
 
 ## Important
 
-This code is build for **Java 7**. This is intentionally. It was necessary due 
-to limitation on the destination system. With Java 8 some code could be
-simplified and optimized. 
+This code is build for **Java 17**.
 
-This code runs only on systems where **bash** is available. Tested on **Ubuntu 18.04** and 
-**Mac OS 10.8**. 
-
-
-
+This code runs only on systems where **bash** is available. Tested on **Ubuntu 24.04**.
